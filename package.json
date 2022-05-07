@@ -8,11 +8,8 @@
         "build": "electron-builder build"
     },
     "dependencies": {
-        "axios": "^0.27.2",
-        "browser-id3-writer": "^4.4.0",
         "ffmpeg-static": "5.0.0",
         "fluent-ffmpeg": "^2.1.2",
-        "fs-extra": "^10.1.0",
         "ytdl-core": "^4.11.0",
         "ytpl": "^2.3.0"
     },

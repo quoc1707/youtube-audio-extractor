@@ -1,16 +1,9 @@
 const ffmpeg = require('fluent-ffmpeg')
-const {
-    unlinkSync,
-    createWriteStream,
-    readFileSync,
-    writeFileSync,
-} = require('fs')
+const { unlinkSync, createWriteStream } = require('fs')
 const ytdl = require('ytdl-core')
 const { app } = require('electron')
 const { join } = require('path')
-const ID3Writer = require('browser-id3-writer')
 const ytpl = require('ytpl')
-const { getCoverImage, getSongData } = require('./deezerApi')
 const binaries = require('ffmpeg-static').replace(
     'app.asar',
     'app.asar.unpacked'
@@ -21,7 +14,9 @@ const formatSizeUnits = (bytes) => {
     else if (bytes >= 1024) bytes = (bytes / 1024).toFixed(2) + ' KB'
     else bytes = bytes + ' bytes'
 
-    return bytes.replace('.00', '')
+    bytes = bytes.replace('.00', '')
+
+    return bytes
 }
 
 const startDownload = async (params, event) => {
@@ -52,22 +47,15 @@ const singleDownload = async (params, event) => {
     }
 
     let title = info.videoDetails.title
-        .replace(/ *\([^)]*\) */g, ' ')
-        .replace(/[^A-Za-z0-9 ]/g, '')
-        .replace(/feat|feat.|ft.|[0-9]k/gi, '')
-        .replace(/(?<=^| ).(?=$| )/g, '')
-    let songDataFromDeezer = await getSongData(title)
+        .toLowerCase()
+        .replace('-', '')
+        .replace(/\s{1,}/g, '_')
     let downloadPath = app.getPath('downloads')
     let paths = await getVideoAsMp4(params.url, downloadPath, title, event)
 
     await convertMp4ToMp3(paths, event)
 
     unlinkSync(paths.filePath)
-
-    if (songDataFromDeezer) {
-        event.sender.send('download-status', 'Writing mp3 tags')
-        await writeMp3TagsToFile(paths, songDataFromDeezer)
-    }
 
     event.sender.send('download-status', 'Completed', title)
 }
@@ -120,30 +108,6 @@ const convertMp4ToMp3 = (paths, event) => {
             })
             .run()
     })
-}
-
-const writeMp3TagsToFile = async (paths, songData) => {
-    let coverImage = await getCoverImage(songData.cover)
-
-    const songBuffer = readFileSync(join(paths.folderPath, paths.fileTitle))
-    const writer = new ID3Writer(songBuffer)
-
-    writer
-        .setFrame('TIT2', songData.title)
-        .setFrame('TPE1', songData.artist)
-        .setFrame('TALB', songData.album)
-        .setFrame('APIC', {
-            type: 3,
-            data: Buffer.from(coverImage.data, 'base64'),
-            description: 'Front cover',
-        })
-        .addTag()
-
-    unlinkSync(join(paths.folderPath, paths.fileTitle))
-
-    const taggedSongBuffer = Buffer.from(writer.arrayBuffer)
-
-    writeFileSync(join(paths.folderPath, paths.fileTitle), taggedSongBuffer)
 }
 
 module.exports = startDownload
