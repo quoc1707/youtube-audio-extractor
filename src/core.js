@@ -42,13 +42,14 @@ const singleDownload = async (params, event) => {
         .catch((error) => console.log(error))
 
     if (!info) {
-        event.sender.send('download-status', 'Video not found')
+        event.sender.send('download-status', `Video can't be found.`)
         return
     }
 
     let title = info.videoDetails.title
         .toLowerCase()
         .replace('-', '')
+        .replace(',', '')
         .replace(/\s{1,}/g, '_')
     let downloadPath = app.getPath('downloads')
     let paths = await getVideoAsMp4(params.url, downloadPath, title, event)
