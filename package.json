@@ -9,13 +9,13 @@
     },
     "dependencies": {
         "ffmpeg-static": "5.0.0",
-        "fluent-ffmpeg": "^2.1.2",
-        "ytdl-core": "^4.11.0",
-        "ytpl": "^2.3.0"
+        "fluent-ffmpeg": "2.1.2",
+        "ytdl-core": "4.11.0",
+        "ytpl": "2.3.0"
     },
     "devDependencies": {
-        "electron": "^18.2.2",
-        "electron-builder": "^23.0.3"
+        "electron": "18.2.2",
+        "electron-builder": "23.0.3"
     },
     "build": {
         "asar": true,
@@ -30,8 +30,9 @@
         "nsis": {
             "shortcutName": "${productName}",
             "artifactName": "${name}-${version}.${ext}",
-            "oneClick": true,
-            "perMachine": true,
+            "oneClick": false,
+            "perMachine": false,
+            "allowToChangeInstallationDirectory": true,
             "allowElevation": true,
             "runAfterFinish": true,
             "createDesktopShortcut": true,
